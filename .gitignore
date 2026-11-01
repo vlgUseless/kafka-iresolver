@@ -1,0 +1,11 @@
+/build/
+/runtime/
+/distribution/
+/downloads/
+/data/
+/output/
+/docs/*.pdf
+*.log
+__pycache__/
+.idea/
+.vscode/

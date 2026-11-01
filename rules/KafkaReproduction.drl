@@ -1,0 +1,15 @@
+package com.koval.resolver.rules
+import com.koval.resolver.common.api.model.issue.Issue;
+global java.util.List results;
+
+rule "Kafka bug requires explicit reproduction steps"
+when
+    $issue : Issue(
+        key != null, key.startsWith("KAFKA-"),
+        issueType != null, issueType.name == "Bug",
+        description != null,
+        eval(!description.toLowerCase(java.util.Locale.ROOT).matches("(?s).*(steps to reproduce|steps to reproduce:|reproduction steps|reproducer|reproduce|reproduction).*"))
+    )
+then
+    results.add("CUSTOM_KAFKA_REPRODUCTION: Request Kafka version, broker/client configuration, reproduction steps, expected and actual results, and relevant logs before assigning the bug.");
+end

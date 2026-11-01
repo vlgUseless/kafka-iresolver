@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Issue Report</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <style>
+        .card {
+            margin-left:20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container pt-4">
+    <nav class="toc">
+        <h2>Content:</h2>
+        <ul>
+        #foreach ($result in $results)
+            <li><a href="#$result.getOriginalIssue().getKey()">$result.getOriginalIssue().getKey()</a>
+        #end
+        </ul>
+    </nav>
+    #foreach ($result in $results)
+        <div class="card bg-light border-secondary mb-4">
+            <div class="card-header">
+                <h4>
+                    <h2 id="$result.getOriginalIssue().getKey()"><a href="$result.getOriginalIssue().getLink()" target="_blank">$result.getOriginalIssue().getKey()</a></h2>$result.getOriginalIssue().getSummary()
+                </h4>
+            </div>
+            <div class="card-body">
+
+            #if($isIssuesProcessorEnabled)
+                <details> <summary>Similar Issues</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Key</th>
+                        <th>Summary</th>
+                        <th>Similarity</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($issue in $result.getSimilarIssues())
+                        <tr>
+                            <td>$issue.getEntity().getIssueType().getName()</td>
+                            <td><a href="$issue.getEntity().getLink()" target="_blank">$issue.getEntity().getKey()</a></td>
+                            <td>$issue.getEntity().getSummary()</td>
+                            <td>$numberTool.format("#0.00", $issue.getMetric())%</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+
+                <details> <summary>Qualified Users</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Full Name</th>
+                        <th>E-mail</th>
+                        <th>Rank</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($qualifiedUser in $result.getQualifiedUsers())
+                        <tr>
+                            <td>$qualifiedUser.getEntity().getName()</td>
+                            <td>$qualifiedUser.getEntity().getDisplayName()</td>
+                            <td>
+                            #if($qualifiedUser.getEntity().getEmailAddress())
+                                <a href="mailto:$qualifiedUser.getEntity().getEmailAddress()">$qualifiedUser.getEntity().getEmailAddress()</a>
+                            #end
+                            </td>
+                            <td>$qualifiedUser.getMetric()</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+
+                <details> <summary>Probable Labels</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Rank</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($probableLabel in $result.getProbableLabels())
+                        <tr>
+                            <td>$probableLabel.getEntity()</td>
+                            <td>$probableLabel.getMetric()</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+
+                <details> <summary>Probable Attachments</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th>Attachment type</th>
+                        <th>Rank</th>
+                        <th>Type</th>
+                        <th>Is presented</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($probableAttachment in $result.getProbableAttachmentTypes())
+                        <tr>
+                            <td>$probableAttachment.getExtension()</td>
+                            <td>$probableAttachment.getRank()</td>
+                            <td>$probableAttachment.getType()</td>
+                            <td>$probableAttachment.isPresentInCurrentIssue()</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+            #end
+
+            #if($isDocumentationProcessorEnabled)
+                <details> <summary>Useful Documentation</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Page</th>
+                            <th>Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($doc in $result.getDocumentationResults())
+                        <tr>
+                            <td><a href="$doc.getFileUri()" target="_blank">$doc.getFileName()</a></td>
+                            <td><a title="hover text" href="$doc.getFileUri()#page=$doc.getPageNumber()" target="_blank">$doc.getPageNumber()</a></td>
+                            <td>$numberTool.format("#0.00", $doc.getRank())%</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+            #end
+
+            #if($isConfluenceProcessorEnabled)
+                <details> <summary>Confluence pages</summary>
+                <table class="table table-hover table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Page ID</th>
+                            <th>Title</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        #foreach ($page in $result.getConfluenceResults())
+                        <tr>
+                            <td>$page.getPageId()</td>
+                            <td>$page.getTitle()</td>
+                            <td><a href="$page.getBrowseUrl()" target="_blank">$page.getBrowseUrl()</a></td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table></details>
+                <br/>
+            #end
+
+            #if($isRuleEngineProcessorEnabled)
+                <h5 class="card-title">Proposals</h5>
+                #foreach ($proposal in $result.getProposals())
+                    <div>$proposal</div>
+                #end
+            #end
+            </div>
+        </div>
+    #end
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+</body>
+</html>

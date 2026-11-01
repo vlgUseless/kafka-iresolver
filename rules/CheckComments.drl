@@ -1,0 +1,48 @@
+package com.koval.resolver.rules
+
+import com.koval.resolver.common.api.model.issue.Issue;
+import com.koval.resolver.common.api.util.CollectionsUtil
+import com.koval.resolver.common.api.util.TextUtil
+global java.util.List results
+
+
+rule "Comments are empty"
+	when
+		$issue : Issue( comments.isEmpty() )
+	then
+		results.add("Should assign on the qualified engineer");
+end
+
+/*
+rule "Last comment is from reporter and contains question"
+	when
+		$issue : Issue( TextUtil.hasQuestion() )
+	then
+		results.add("Should answer the question");
+end
+
+
+rule "Last comment is not from reporter"
+	when
+		$issue : Issue( true )
+	then
+		results.add("Probably should assign issue on reporter");
+end
+*/
+
+
+rule "Issue status is open and comments are not empty"
+	when
+		$issue : Issue( status == "OPEN" && !comments.isEmpty() )
+	then
+		results.add("Should change status to IN PROGRESS");
+end
+
+/*
+rule "Last comment was 3 days ago"
+	when
+		$issue : Issue( !comments.isEmpty() && CollectionsUtil.getLastItem(comments).updateDate )
+	then
+		results.add("Should ping TSE and check status");
+end
+*/

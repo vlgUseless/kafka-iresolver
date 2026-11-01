@@ -1,0 +1,20 @@
+package com.koval.resolver.rules
+
+import com.koval.resolver.common.api.model.issue.Issue;
+global java.util.List results
+
+
+rule "Description is empty"
+	when
+		$issue : Issue( description.isEmpty() )
+	then
+		results.add("Description should contain information. Developer should request information from TSE");
+end
+
+
+rule "Description contains less than 100 characters"
+	when
+		$issue : Issue( !description.isEmpty() && description.length() < 100 )
+	then
+		results.add("Description is too short. Developer should request more information from TSE");
+end
