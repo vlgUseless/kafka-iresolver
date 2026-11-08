@@ -1,7 +1,9 @@
 """Install pinned iResolver and JDK archives locally, without changing system Java."""
 
 import hashlib
+import platform
 import shutil
+import tarfile
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -25,6 +27,15 @@ ARCHIVES = [
     ),
 ]
 
+if platform.system() == "Darwin":
+    ARCHIVES[1] = (
+        "jdk11-macos.tar.gz",
+        "https://cdn.azul.com/zulu/bin/zulu11.92.113-ca-jdk11.0.33-macosx_x64.tar.gz",
+        "21d131d8893ed14c2404ac972fd062834553a93ead42aa27b3d4e3cf190c6d08",
+        "runtime",
+        "runtime/zulu11.92.113-ca-jdk11.0.33-macosx_x64/Contents/Home/bin/javac",
+    )
+
 
 def download(url, destination):
     print(f"Загрузка {destination.name}...", flush=True)
@@ -40,10 +51,26 @@ def download(url, destination):
 
 def extract_verified(archive_path, expected_hash, destination):
     with archive_path.open("rb") as source:
-        actual_hash = hashlib.file_digest(source, "sha256").hexdigest()
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+        actual_hash = digest.hexdigest()
     if actual_hash != expected_hash:
         raise ValueError(f"Неверный SHA-256 архива {archive_path}")
     destination.mkdir(parents=True, exist_ok=True)
+    if tarfile.is_tarfile(archive_path):
+        with tarfile.open(archive_path) as archive:
+            for member in archive.getmembers():
+                if not (destination / member.name).resolve().is_relative_to(destination.resolve()):
+                    raise ValueError(f"Небезопасный путь в TAR: {member.name}")
+                if member.issym():
+                    target = destination / member.name
+                    if not (target.parent / member.linkname).resolve().is_relative_to(destination.resolve()):
+                        raise ValueError(f"Небезопасная ссылка в TAR: {member.name}")
+                elif not (member.isfile() or member.isdir()):
+                    raise ValueError(f"Неподдерживаемый файл в TAR: {member.name}")
+            archive.extractall(destination)
+        return
     with zipfile.ZipFile(archive_path) as archive:
         for name in archive.namelist():
             if not (destination / name).resolve().is_relative_to(destination.resolve()):

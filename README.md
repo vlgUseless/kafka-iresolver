@@ -4,9 +4,24 @@
 
 ## Запуск
 
-Windows x64, PowerShell 7; для подготовки зависимостей и данных — Python 3.11+.
+Windows x64 с PowerShell 7 или macOS; для подготовки зависимостей и данных — Python 3.9+.
 
-В текущей рабочей копии зависимости, данные и модели уже подготовлены:
+На macOS из корня проекта:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python scripts/setup.py
+.venv/bin/python scripts/fetch_data.py
+.venv/bin/python scripts/prepare_docs.py
+bash run.sh --test
+bash run.sh
+open output/report.html
+```
+
+`setup.py` устанавливает локальный JDK 11 x64. На Apple Silicon нужен Rosetta: если он отсутствует, выполните `softwareupdate --install-rosetta --agree-to-license`. Старые нативные библиотеки ND4J запускаются через Java x64. Системная Java не изменяется. `bash run.sh` компилирует исходники и обучает отсутствующие модели; `bash run.sh --train` принудительно переобучает их. Для следующих запусков достаточно `bash run.sh`.
+
+В Windows после подготовки:
 
 ```powershell
 .\run.ps1
@@ -25,7 +40,7 @@ python scripts/prepare_docs.py
 .\run.ps1 -Train
 ```
 
-`setup.py` скачивает iResolver 1.1.0, JDK 11 и руководства Kafka. Архивы проверяются по SHA-256. Системная Java не изменяется. Новая загрузка Jira получает актуальные задачи; исходный эксперимент выполнен 01.11.2026 на 1000 исправленных задачах и 5 открытых ошибках. Подготовка документации дала 493 страницы. Параметры обучения и пути задаются в `config/configuration.yml`.
+`setup.py` скачивает iResolver 1.1.0, JDK 11 для выбранной ОС и руководства Kafka. Архивы проверяются по SHA-256. Системная Java не изменяется. Новая загрузка Jira получает актуальные задачи; исходный эксперимент выполнен 01.11.2026 на 1000 исправленных задачах и 5 открытых ошибках. Подготовка документации дала 493 страницы. Параметры обучения и пути задаются в `config/configuration.yml`.
 
 ## Код
 
